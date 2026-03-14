@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // TransactionType represents the category of a PayPal transaction.
@@ -174,7 +175,7 @@ func (tp *TransactionProcessor) readSingleCSV(filename string) ([]Transaction, e
 
 		// Security: Validate transaction ID (no control characters)
 		txnID := strings.TrimSpace(record[4])
-		if strings.ContainsAny(txnID, "\n\r\t") {
+		if idx := strings.IndexFunc(txnID, unicode.IsControl); idx != -1 {
 			tp.logger.Printf("Warning: Line %d in %s has invalid transaction ID with control characters, skipping", lineNum, filepath.Base(filename))
 			continue
 		}
