@@ -64,8 +64,11 @@ func NewTransactionProcessor(vaultDir, ledgerDir string) (*TransactionProcessor,
 	}
 
 	// Validate vault directory exists
-	if _, err := os.Stat(absVaultDir); os.IsNotExist(err) {
-		return nil, fmt.Errorf("vault directory does not exist: %s", absVaultDir)
+	if _, err := os.Stat(absVaultDir); err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("vault directory does not exist: %s", absVaultDir)
+		}
+		return nil, fmt.Errorf("failed to stat vault directory %s: %w", absVaultDir, err)
 	}
 
 	// Create ledger directory if it doesn't exist
