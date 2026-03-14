@@ -138,7 +138,7 @@
     </div>
     [[ end ]]
 
-    [[ if not .Transactions ]]
+    [[ if eq .Summary.TotalTransactions 0 ]]
     <div class="notification is-warning">
       <p>No transaction data found. Please ensure CSV files are present in the vault directory.</p>
     </div>
