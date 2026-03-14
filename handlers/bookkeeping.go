@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -66,8 +67,15 @@ func (gh *GRCHandler) BookkeepingHandler(w http.ResponseWriter, r *http.Request,
 		"google_analytics_key": googleAnalyticsKey,
 	}
 
-	if err := t.ExecuteTemplate(w, "base", data); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	var buf bytes.Buffer
+	if err := t.ExecuteTemplate(&buf, "base", data); err != nil {
+		log.Printf("error executing bookkeeping template: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := w.Write(buf.Bytes()); err != nil {
+		log.Printf("error writing bookkeeping response: %v", err)
 	}
 }
 
