@@ -30,3 +30,5 @@ _repos
 goreportcard.db
 db/
 main
+db/
+goreportcard
