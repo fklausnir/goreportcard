@@ -14,34 +14,29 @@ import (
 	"github.com/gojp/goreportcard/vault"
 )
 
-// BookkeepingHandler serves the bookkeeping viewer page showing transaction data
-func (gh *GRCHandler) BookkeepingHandler(w http.ResponseWriter, r *http.Request, db *badger.DB) {
-	// Security: Only allow GET requests
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+// bookkeepingError wraps an error with a user-facing message for bookkeeping operations.
+type bookkeepingError struct {
+	msg string
+}
 
-	t, err := gh.loadTemplate("/templates/bookkeeping.html")
-	if err != nil {
-		http.Error(w, "Failed to load template", http.StatusInternalServerError)
-		return
-	}
+func (e *bookkeepingError) Error() string {
+	return e.msg
+}
 
+// loadBookkeepingData encapsulates the shared workflow for loading and preparing bookkeeping data.
+func loadBookkeepingData() (map[string][]vault.Transaction, interface{}, string, error) {
 	// Read transactions from vault
 	vaultDir := getEnvOrDefault("VAULT_DIR", "vault")
 	ledgerDir := getEnvOrDefault("LEDGER_DIR", "ledger")
 
 	processor, err := vault.NewTransactionProcessor(vaultDir, ledgerDir)
 	if err != nil {
-		http.Error(w, "Failed to initialize transaction processor", http.StatusInternalServerError)
-		return
+		return nil, nil, "", &bookkeepingError{msg: "Failed to initialize transaction processor"}
 	}
 
 	transactions, err := processor.ReadCSVFiles()
 	if err != nil {
-		http.Error(w, "Failed to read transaction files", http.StatusInternalServerError)
-		return
+		return nil, nil, "", &bookkeepingError{msg: "Failed to read transaction files"}
 	}
 
 	// Categorize transactions
@@ -59,6 +54,33 @@ func (gh *GRCHandler) BookkeepingHandler(w http.ResponseWriter, r *http.Request,
 
 	// Use current year dynamically
 	currentYear := fmt.Sprintf("%d", time.Now().Year())
+
+	return transactionData, summary, currentYear, nil
+}
+
+// BookkeepingHandler serves the bookkeeping viewer page showing transaction data
+func (gh *GRCHandler) BookkeepingHandler(w http.ResponseWriter, r *http.Request, db *badger.DB) {
+	// Security: Only allow GET requests
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	t, err := gh.loadTemplate("/templates/bookkeeping.html")
+	if err != nil {
+		http.Error(w, "Failed to load template", http.StatusInternalServerError)
+		return
+	}
+
+	transactionData, summary, currentYear, err := loadBookkeepingData()
+	if err != nil {
+		if be, ok := err.(*bookkeepingError); ok {
+			http.Error(w, be.msg, http.StatusInternalServerError)
+		} else {
+			http.Error(w, "Failed to load bookkeeping data", http.StatusInternalServerError)
+		}
+		return
+	}
 
 	data := map[string]interface{}{
 		"Transactions":         transactionData,
