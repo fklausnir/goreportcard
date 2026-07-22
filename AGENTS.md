@@ -29,7 +29,7 @@ Run all commands from repository root:
 - Keep changes minimal and scoped to the task.
 - Prefer updating existing code paths over introducing new abstractions unless necessary.
 - Do not modify vendored code under `vendor/` unless explicitly required.
-- Avoid changing fixtures in `check/testdata/` and download test assets unless the task needs it.
+- Avoid changing fixtures in `check/testdata/` unless the task needs it.
 - When modifying behavior, add or update tests close to the changed package.
 
 ## Code style and quality
