@@ -2,13 +2,13 @@
 
 ## Supported Versions
 
-Security fixes are provided for the latest code on the `main` branch only.
+Security fixes are provided for the latest code on the `master` branch only.
 Older releases or snapshots are not supported unless explicitly noted
 elsewhere in this repository.
 
 | Version       | Supported          |
 | ------------- | ------------------ |
-| `main` branch | :white_check_mark: |
+| `master` branch | :white_check_mark: |
 | Older versions | :x:               |
 
 ## Reporting a Vulnerability
